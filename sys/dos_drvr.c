@@ -12,7 +12,7 @@ unsigned int Init_cmd(struct REQ_struct far *r_ptr)
 {
     Write_tty("#FUJINET Network Driver 0.0\r\n");
     r_ptr->req_type.init_req.end_ptr =
-			MK_FP(_DS,(unsigned int)End_code);
+      MK_FP(FP_SEG(End_code),(unsigned int)End_code);
 
     return OP_COMPLETE;
 }
