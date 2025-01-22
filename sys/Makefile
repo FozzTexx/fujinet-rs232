@@ -1,7 +1,7 @@
 ASM     = wasm
 CC      = wcc
 #CFLAGS  = -I.. -b dos -fno-stack-check
-CFLAGS = -0 -I.. -s -fpc
+CFLAGS = -0 -I.. -s
 LINK	= wlink
 
 INCS    = dos_dd.h
