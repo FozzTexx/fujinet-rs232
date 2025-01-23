@@ -1,6 +1,7 @@
 #include "dos_dd.h"
 #include "com.h"
 
+#if 0
 extern void far Strategy();
 extern void far Interrupt();
 
@@ -12,6 +13,7 @@ struct DEVICE_HEADER_struct dos_header =
     (unsigned int) Interrupt,
     {'F','U','J','I',' ',' ',' ',' '}
 };
+#endif
 
 struct  BPB_struct      bpb = 
 {

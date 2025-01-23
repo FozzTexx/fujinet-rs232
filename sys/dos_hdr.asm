@@ -1,13 +1,31 @@
-	name	DOS_hdr
-_DATA	segment word public 'DATA'
-_d0 label		byte
-_DATA	ends
-_BSS	segment word public 'BSS'
-_b0 label		byte
-_BSS	ends
-_TEXT	segment byte public 'CODE'
-DGROUP	group	_DATA,_BSS,_TEXT
-	assume	cs:DGROUP,ds:DGROUP,ss:DGROUP
-_TEXT	ends
-	end
-
+DGROUP  group   _SYS_HEADER, _INIT
+
+_INIT   segment word public 'INIT'
+        
+        public  _transient_data
+        public  _small_code_
+
+_transient_data label near
+
+_small_code_    dw      ?
+
+_INIT   ends
+
+_SYS_HEADER segment word public 'SYS_HEADER'
+
+        org     0
+
+_sys_hdr_ label near
+
+	extrn	Strategy_:near
+	extrn	Interrupt_:near
+
+	dd	-1
+	dw	08003h
+	dw	Strategy_
+	dw	Interrupt_
+	db	'FUJI    '
+
+_SYS_HEADER ends
+
+        end     _sys_hdr_
