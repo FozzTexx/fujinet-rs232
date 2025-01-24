@@ -2,14 +2,18 @@
  * #FUJINET Low Level Routines
  */
 
-#include "com.h"
 #include "fujicom.h"
+#include "com.h"
+#include "fujinet.h"
+
+#include <env.h>
+#include <stdlib.h>
 
 PORT *port;
 
 void fujicom_init(void)
 {
-	int base=0x3f8, i=12;
+	int base=0x3f8, i=4;
 	int baud=9600;
 	int p=1;
 
@@ -24,11 +28,11 @@ void fujicom_init(void)
 		default:
 		case 1:
 			base = 0x3f8;
-			i = 12;
+			i = 4;
 			break;
 		case 2:
 			base = 0x2f8;
-			i = 11;
+			i = 3;
 			break;
 	}
 
@@ -53,7 +57,7 @@ unsigned char fujicom_cksum(unsigned char *buf, unsigned short len)
  * @param c ptr to command frame to send
  * @return 'A'ck, or 'N'ak.
  */
-char _fujicom_send_command(cmdFrame_t *c)
+char _fujicom_send_command(cmdFrame_t __interrupt *c)
 {
 	int i=-1;
 	unsigned char *cc = (unsigned char *)c;
@@ -61,17 +65,22 @@ char _fujicom_send_command(cmdFrame_t *c)
 	/* Calculate checksum and place in frame */
 	c->dcksum = fujicom_cksum(cc,4);
 
+	printMsg("DTR\r\n$");
 	/* Assert DTR to indicate start of command frame */
 	port_set_dtr(port,1);
 
+	printMsg("PUT\r\n$");
 	/* Write command frame */
 	port_put(port,cc,sizeof(cmdFrame_t));
 
+	printMsg("DTR2\r\n$");
 	/* Desert DTR to indicate end of command frame */
 	port_set_dtr(port,0);
 
+	printMsg("SYNC\r\n$");
 	i=port_getc_sync(port);
 
+	printMsg("SENT\r\n$");
 	return (unsigned char)i;
 }
 
@@ -82,7 +91,7 @@ char fujicom_command(cmdFrame_t *c)
 	return port_getc_sync(port);
 }
 
-char fujicom_command_read(cmdFrame_t *c, unsigned char *buf, unsigned short len)
+char fujicom_command_read(cmdFrame_t __interrupt *c, unsigned char *buf, unsigned short len)
 {
 	int r; /* response */
 	int i;

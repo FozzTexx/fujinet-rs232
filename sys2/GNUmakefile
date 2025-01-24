@@ -1,5 +1,5 @@
 all:
-	wmake
+	wmake -e
 
 clean:
 	wmake clean

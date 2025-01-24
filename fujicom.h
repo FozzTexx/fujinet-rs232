@@ -36,7 +36,7 @@ char fujicom_command(cmdFrame_t *c);
  * @param buf Pointer to buffer to receive
  * @param len Expected buffer length
  */
-char fujicom_command_read(cmdFrame_t *c, unsigned char *buf, unsigned short len);
+char fujicom_command_read(cmdFrame_t __interrupt *c, unsigned char *buf, unsigned short len);
 
 /**
  * @brief send fujinet frame and write payload

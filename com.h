@@ -55,12 +55,12 @@ void port_set( PORT *port,
                int data,
                int stopbits );
 void port_close( PORT *port );
-int port_putc( unsigned char c, PORT *port );
+int port_putc( unsigned char c, PORT __interrupt *port );
 int port_available( PORT *port );
 int port_getc( PORT *port );
 int port_getc_sync( PORT *port );
 void port_set_dtr( PORT *port, unsigned char t);
-void port_put( PORT *port, unsigned char *buf, unsigned short len);
+void port_put( PORT __interrupt *port, unsigned char __interrupt *buf, unsigned short len);
 
 /*
  * These are the standard UART addresses and interrupt
