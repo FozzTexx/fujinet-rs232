@@ -20,6 +20,8 @@
  *
  */
 
+#undef LOOPBACK_TEST
+
 #include <dos.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -35,6 +37,8 @@
 
 PORT my_port;
 cmdFrame_t __interrupt c;
+struct _tm t;
+char *test_data = "ABCDEF";
 
 struct _tm
 {
@@ -59,23 +63,27 @@ void byte_to_hex(char *buffer, unsigned char byte)
   return;
 }
 
+void byte_to_decimal(char *buffer, unsigned char byte)
+{
+  buffer[0] = '0' + (byte / 10) % 10;
+  buffer[1] = '0' + byte % 10;
+  return;
+}
+
 uint16_t Init_cmd( void )
 {
   printMsg(hellomsg);
 
   fpRequest->r_endaddr = MK_FP(getCS(), &transient_data);
 
-#if 0
+#ifdef LOOPBACK_TEST
   {
     unsigned int val;
     PORT *port;
 
 
-#if 0
-    port = port_open(0x3f8, 12);
-#else
     port = port_open_static(&my_port, 0x3f8, 12);
-#endif
+
     strcpy(hellomsg, "ADDR  0x0000\r\n$");
     byte_to_hex(&hellomsg[8], ((unsigned int) port) >> 8);
     byte_to_hex(&hellomsg[10], (unsigned int) port);
@@ -92,27 +100,48 @@ uint16_t Init_cmd( void )
     byte_to_hex(&hellomsg[8], val);
     printMsg(hellomsg);
 
-    outp(port->uart_base + 4, 0x1A);
+    outp(port->uart_base + 4, 8 + 0);//0x0A);
     val = inp(port->uart_base + 6); // Get modem lines
     byte_to_hex(&hellomsg[8], val);
     printMsg(hellomsg);
 
-    outp(port->uart_base + 4, 0x15);
+    outp(port->uart_base + 4, 8 + 3);//0x05);
     val = inp(port->uart_base + 6); // Get modem lines
     byte_to_hex(&hellomsg[8], val);
     printMsg(hellomsg);
 
-    outp(port->uart_base + 4, 0);
-    port_set(port,9600,'N',8,1);
-    port_put(port, "ABCDEF", 6);
-  }
+    port_set(port, 9600, 'N', 8, 1);
+    //outp(port->uart_base + 4, 3 + 8);
+
+    {
+      int idx;
+
+
+      for (idx = 0; test_data[idx]; idx++) {
+	outp(port->uart_base, test_data[idx]);
+	for (;;) {
+	  val = inp(port->uart_base + 5);
+	  if (val & 1)
+	    break;
+#if 0
+	  strcpy(hellomsg, "LSR: 0x00\r\n$");
+	  byte_to_hex(&hellomsg[7], val);
+	  printMsg(hellomsg);
+	  break;
 #endif
-  
-#if 1
+	}
+	//val = inp(port->uart_base);
+	val = port_getc(port);
+	strcpy(hellomsg, "RCV: 0x00\r\n$");
+	byte_to_hex(&hellomsg[7], val);
+	printMsg(hellomsg);
+      }
+    }
+  }
+#else /* !LOOPBACK_TEST */
   {
     char reply=0;
     union REGS __interrupt r;
-    struct _tm t;
 
 
     c.ddev = 0x45;
@@ -150,11 +179,19 @@ uint16_t Init_cmd( void )
     //intdos(&r,NULL);
 
     printMsg("MS-DOS Time now set from FujiNet\r\n$");
-    printMsg("DATE: %02u/%02u/%02u\r\n$");//,t.tm_month,t.tm_mday,t.tm_year);
-    printMsg("TIME: %02u:%02u:%02u\r\n$");//,t.tm_hour,t.tm_min,t.tm_sec);
+    strcpy(hellomsg, "DATE: 00/00/00\r\n$");
+    byte_to_decimal(&hellomsg[6], t.tm_month);
+    byte_to_decimal(&hellomsg[9], t.tm_mday);
+    byte_to_decimal(&hellomsg[12], t.tm_year);
+    printMsg(hellomsg);
 
+    strcpy(hellomsg, "TIME: 00:00:00\r\n$");
+    byte_to_decimal(&hellomsg[6], t.tm_hour);
+    byte_to_decimal(&hellomsg[9], t.tm_min);
+    byte_to_decimal(&hellomsg[12], t.tm_sec);
+    printMsg(hellomsg);
   }
-#endif
+#endif /* LOOPBACK_TEST */
 
   return 0;
 }
