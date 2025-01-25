@@ -87,13 +87,6 @@ extern __segment getCS( void );
 #pragma aux getCS = \
     "mov ax, cs";
 
-extern void printMsg( const char * );
-#pragma aux printMsg =        \
-    "mov    ah, 0x9"          \
-    "int    0x21"             \
-    __parm [__dx]             \
-    __modify [__ax __di __es];
-
 typedef uint16_t (*driverFunction_t)(void);
 
 extern request __far *fpRequest;

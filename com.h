@@ -49,12 +49,14 @@ typedef struct {
  * routines actually reside in COM.C
  */
 PORT *port_open( int address, int interrupt_number );
+PORT *port_open_static( PORT *port, int address, int interrupt_number );
 void port_set( PORT *port,
                long speed,
                char parity,
                int data,
                int stopbits );
 void port_close( PORT *port );
+void port_close_static( PORT *port );
 int port_putc( unsigned char c, PORT __interrupt *port );
 int port_available( PORT *port );
 int port_getc( PORT *port );

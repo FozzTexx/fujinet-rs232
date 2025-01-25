@@ -4,16 +4,27 @@
 
 #include "fujicom.h"
 #include "com.h"
-#include "fujinet.h"
 
 #include <env.h>
 #include <stdlib.h>
 
+#undef STANDARD_IRQ
+#ifdef STANDARD_IRQ
+#define IRQ_COM1       4
+#define IRQ_COM2       3
+#else /* !STANDARD_IRQ */
+#define IRQ_COM1       12
+#define IRQ_COM2       11
+#endif /* STANDARD_IRQ */
+#define BASE_COM1      0x3f8
+#define BASE_COM2      0x2f8
+
+PORT fn_port;
 PORT *port;
 
 void fujicom_init(void)
 {
-	int base=0x3f8, i=4;
+  int base, irq;
 	int baud=9600;
 	int p=1;
 
@@ -27,16 +38,16 @@ void fujicom_init(void)
 	{
 		default:
 		case 1:
-			base = 0x3f8;
-			i = 4;
+			base = BASE_COM1;
+			irq = IRQ_COM1;
 			break;
 		case 2:
-			base = 0x2f8;
-			i = 3;
+			base = BASE_COM2;
+			irq = IRQ_COM2;
 			break;
 	}
 
-	port = port_open(base,i);
+	port = port_open_static(&fn_port, base, irq);
 	port_set(port,baud,'N',8,1);
 }
 
@@ -152,5 +163,5 @@ char fujicom_command_write(cmdFrame_t *c, unsigned char *buf, unsigned short len
 
 void fujicom_done(void)
 {
-	port_close(port);
+	port_close_static(port);
 }

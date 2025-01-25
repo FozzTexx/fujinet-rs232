@@ -50,3 +50,11 @@ char fujicom_command_write(cmdFrame_t *c, unsigned char *buf, unsigned short len
  * @brief end fujicom
  */
 void fujicom_done(void);
+
+extern void printMsg( const char * );
+#pragma aux printMsg =        \
+    "mov    ah, 0x9"          \
+    "int    0x21"             \
+    __parm [__dx]             \
+    __modify [__ax __di __es];
+

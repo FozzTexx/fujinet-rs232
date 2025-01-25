@@ -29,8 +29,8 @@ CFLAGS  = -0 -bt=dos -ms -q -s -osh
 ASFLAGS = -bt=DOS -zq -mt -0
 LDFLAGS =	SYSTEM dos &
 			ORDER clname HEADER clname DATA clname CODE clname BSS clname INIT &
-			DISABLE 1014 OPTION QUIET, STATICS, MAP &
-			LIBRARY clibc.lib OPTION START=Init_cmd_
+			DISABLE 1014, STATICS, MAP &
+			LIBRARY clibs.lib OPTION START=Init_cmd_
 
 !ifdef USE_INTERNAL_STACK
 CFLAGS += -DUSE_INTERNAL_STACK -DSTACK_SIZE=300

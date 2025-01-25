@@ -47,6 +47,7 @@
 #define MCR_RTS          2    /* Bit to turn on RTS      */
 #define MCR_OUT1         4    /* Bit to turn on OUT1     */
 #define MCR_OUT2         8    /* Bit to turn on OUT2     */
+#define MCR_LOOP         16   /* Bit to turn on loopback */
 #define LSR              5    /* Line Status register    */
 #define MSR              6    /* Modem Status register   */
 #define DLL              0    /* Divisor latch LSB       */
@@ -148,7 +149,18 @@ static void interrupt far interrupt_service_routine()
 }
 /*
  * This routine opens an RS-232 port up.  This means it
- * allocates space for a PORT strcture, initializes the
+ * allocates space for a PORT strcture, then calls port_open_static.
+ */
+PORT *port_open( int address, int int_number )
+{
+  PORT *port;
+
+  if ((port = malloc( sizeof( PORT ))) == NULL)
+    return( NULL );
+  return port_open_static(port, address, int_number);
+}
+
+/* initializes the
  * input and output buffers, stores the uart address and
  * the interrupt number.  It then gets and stored the
  * interrupt vector presently set up for the UART, then
@@ -157,13 +169,10 @@ static void interrupt far interrupt_service_routine()
  * 8259 interrupt controller to begin accepting interrupts
  * on the IRQ line used by this COM port.
  */
-PORT *port_open( int address, int int_number )
+PORT *port_open_static(PORT *port, int address, int int_number )
 {
   unsigned char temp;
-  PORT *port;
 
-  if ((port = malloc( sizeof( PORT ))) == NULL)
-    return( NULL );
   com = port;
   port->in.write_index = port->in.read_index = 0;
   port->out.write_index = port->out.read_index = 0;
@@ -241,7 +250,7 @@ void port_set( PORT *port,
  * I turn on RTS and DTR, as well as OUT2.  OUT2 is needed
  * to allow interrupts on PC compatible cards.
  */
-  mcr_out = MCR_RTS | MCR_DTR | MCR_OUT2 ;
+  mcr_out = MCR_RTS | MCR_DTR | MCR_OUT2;
   outportb( port->uart_base + MCR, mcr_out );
 /*
  * Finally, restart receiver interrupts, and exit.
@@ -249,15 +258,22 @@ void port_set( PORT *port,
   outportb( port->uart_base + IER, IER_RX_DATA );
 }
 /*
+ * Calls port_close_static then frees the passed struct
+ */
+void port_close( PORT *port )
+{
+  port_close_static(port);
+  free( port );
+}
+/*
  * In order to close the port, I first disable interrupts
  * at the UART, then disable interrupts from the UART's IRQ
  * line at the 8259 interrupt controller.  DTR, RTS, and
  * OUT2 are all dropped. The UART's previous interrupt
  * handler is restored, and the old break handler
- * is restored.  Finally, the port data structure is freed,
- * and things should be completely back to normal.
+ * is restored.
  */
-void port_close( PORT *port )
+void port_close_static( PORT *port )
 {
   unsigned char temp;
 
@@ -267,7 +283,6 @@ void port_close( PORT *port )
   setvect( port->interrupt_number, port->old_vector );
   setvect( BREAK_VECTOR, old_break_handler );
   outportb( port->uart_base + MCR, 0 );
-  free( port );
 }
 /*
  * This routine is used to send a single character out to
@@ -315,12 +330,14 @@ int port_getc(PORT *port)
 int port_getc_sync(PORT *port)
 {
 	int i;
-	unsigned int timeout = 1000;
+	unsigned int timeout = 10000;
 
 	while (!port_available(port)) {
+#if 0
 	  timeout--;
 	  if (!timeout)
 	    return -1;
+#endif
 	}
 
 	return port_getc(port);
