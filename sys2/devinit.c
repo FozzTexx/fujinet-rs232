@@ -38,6 +38,7 @@
 PORT my_port;
 cmdFrame_t __interrupt c;
 struct _tm t;
+union REGS __interrupt r;
 char *test_data = "ABCDEF";
 
 struct _tm
@@ -141,7 +142,6 @@ uint16_t Init_cmd( void )
 #else /* !LOOPBACK_TEST */
   {
     char reply=0;
-    union REGS __interrupt r;
 
 
     c.ddev = 0x45;
@@ -168,7 +168,7 @@ uint16_t Init_cmd( void )
     r.h.dh = t.tm_month;
     r.h.dl = t.tm_mday;
 
-    //intdos(&r,NULL);
+    intdos(&r,NULL);
 
     r.h.ah = 0x2D;
     r.h.ch = t.tm_hour;
@@ -176,7 +176,7 @@ uint16_t Init_cmd( void )
     r.h.dh = t.tm_sec;
     r.h.dl = 0;
 
-    //intdos(&r,NULL);
+    intdos(&r,NULL);
 
     printMsg("MS-DOS Time now set from FujiNet\r\n$");
     strcpy(hellomsg, "DATE: 00/00/00\r\n$");
