@@ -40,7 +40,8 @@ CFLAGS += -zu
 
 TARGET = fujinet.sys
 
-OBJ =	cstrtsys.obj devinit.obj fujinet.obj fujicom.obj com.obj dos_drvr.obj
+OBJ =	cstrtsys.obj devinit.obj fujinet.obj fujicom.obj com.obj &
+	dos_drvr.obj addrtest.obj print.obj
 
 all : $(TARGET)
 

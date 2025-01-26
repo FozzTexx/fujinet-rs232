@@ -36,7 +36,7 @@ char fujicom_command(cmdFrame_t *c);
  * @param buf Pointer to buffer to receive
  * @param len Expected buffer length
  */
-char fujicom_command_read(cmdFrame_t __interrupt *c, unsigned char *buf, unsigned short len);
+char fujicom_command_read(cmdFrame_t *c, unsigned char *buf, unsigned short len);
 
 /**
  * @brief send fujinet frame and write payload
@@ -50,11 +50,3 @@ char fujicom_command_write(cmdFrame_t *c, unsigned char *buf, unsigned short len
  * @brief end fujicom
  */
 void fujicom_done(void);
-
-extern void printMsg( const char * );
-#pragma aux printMsg =        \
-    "mov    ah, 0x9"          \
-    "int    0x21"             \
-    __parm [__dx]             \
-    __modify [__ax __di __es];
-

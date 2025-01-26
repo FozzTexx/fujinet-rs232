@@ -64,7 +64,7 @@ unsigned char fujicom_cksum(unsigned char *buf, unsigned short len)
  * @param c ptr to command frame to send
  * @return 'A'ck, or 'N'ak.
  */
-char _fujicom_send_command(cmdFrame_t __interrupt *c)
+char _fujicom_send_command(cmdFrame_t *c)
 {
 	int i=-1;
 	unsigned char *cc = (unsigned char *)c;
@@ -93,7 +93,7 @@ char fujicom_command(cmdFrame_t *c)
 	return port_getc_sync(port, TIMEOUT);
 }
 
-char fujicom_command_read(cmdFrame_t __interrupt *c, unsigned char *buf, unsigned short len)
+char fujicom_command_read(cmdFrame_t *c, unsigned char *buf, unsigned short len)
 {
 	int r; /* response */
 	int i;
@@ -140,7 +140,7 @@ char fujicom_command_write(cmdFrame_t *c, unsigned char *buf, unsigned short len
 
 	/* Write the checksum */
 	ck=fujicom_cksum(buf,len);
-	port_put(port,&ck,1);
+	port_putc(ck, port);
 
 	/* Wait for ACK/NACK */
 	r = port_getc_sync(port, TIMEOUT);

@@ -32,14 +32,9 @@
 #include "fujinet.h"
 #include "fujicom.h"
 #include "com.h"
+#include "print.h"
 
-#pragma data_seg("_CODE")
-
-PORT my_port;
-cmdFrame_t __interrupt c;
-struct _tm t;
-union REGS __interrupt r;
-char *test_data = "ABCDEF";
+//#pragma data_seg("_CODE")
 
 struct _tm
 {
@@ -51,25 +46,14 @@ struct _tm
 	char tm_sec;
 };
 
+struct _tm t;
+union REGS r;
+cmdFrame_t c;
+
 //
 // Place here any variables or constants that should go away after initialization
 //
 static char hellomsg[] = "\r\FujiNet in Open Watcom C\r\n$";
-
-void byte_to_hex(char *buffer, unsigned char byte)
-{
-  const char hex_digits[] = "0123456789ABCDEF";
-  buffer[0] = hex_digits[(byte >> 4) & 0xF]; // High nibble
-  buffer[1] = hex_digits[byte & 0xF];        // Low nibble
-  return;
-}
-
-void byte_to_decimal(char *buffer, unsigned char byte)
-{
-  buffer[0] = '0' + (byte / 10) % 10;
-  buffer[1] = '0' + byte % 10;
-  return;
-}
 
 uint16_t Init_cmd( void )
 {
@@ -80,6 +64,7 @@ uint16_t Init_cmd( void )
 #ifdef LOOPBACK_TEST
   {
     unsigned int val;
+    PORT my_port;
     PORT *port;
 
 
@@ -150,15 +135,12 @@ uint16_t Init_cmd( void )
     printMsg("Serial init\r\n$");
     fujicom_init();
     printMsg("Serial read\r\n$");
-    reply = fujicom_command_read(&c,(unsigned char *)&t,sizeof(t));
+    reply = fujicom_command_read(&c, (unsigned char *) &t, sizeof(t));
     printMsg("Serial done\r\n$");
 
     if (reply != 'C')
       {
 	printMsg("Could not read time from FujiNet.\r\nAborted.\r\n$");
-	strcpy(hellomsg, "00\r\n$");
-	byte_to_hex(hellomsg, reply);
-	printMsg(hellomsg);
 	fujicom_done();
 	return 1;
       }
@@ -168,7 +150,7 @@ uint16_t Init_cmd( void )
     r.h.dh = t.tm_month;
     r.h.dl = t.tm_mday;
 
-    intdos(&r,NULL);
+    intdos(&r, NULL);
 
     r.h.ah = 0x2D;
     r.h.ch = t.tm_hour;
@@ -176,7 +158,7 @@ uint16_t Init_cmd( void )
     r.h.dh = t.tm_sec;
     r.h.dl = 0;
 
-    intdos(&r,NULL);
+    intdos(&r, NULL);
 
     printMsg("MS-DOS Time now set from FujiNet\r\n$");
     strcpy(hellomsg, "DATE: 00/00/00\r\n$");

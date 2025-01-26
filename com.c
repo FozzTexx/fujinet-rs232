@@ -293,7 +293,7 @@ void port_close_static( PORT *port )
  * enabled for this UART.  If they aren't, they are turned
  * on so the ISR will see this new character.
  */
-int port_putc( unsigned char c, PORT __interrupt *port )
+int port_putc( unsigned char c, PORT *port )
 {
   if (( port->out.write_index+1 ) == port->out.read_index)
     return( -1 );
@@ -367,7 +367,7 @@ void port_set_dtr(PORT *port, unsigned char t)
  * @param buf Pointer to buffer
  * @param len number of bytes to send, must be len or less.
  */
-void port_put(PORT __interrupt *port, unsigned char __interrupt *buf, unsigned short len)
+void port_put(PORT *port, unsigned char *buf, unsigned short len)
 {
 	int i=0;
 
