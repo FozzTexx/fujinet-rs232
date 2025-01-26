@@ -60,7 +60,7 @@ void port_close_static( PORT *port );
 int port_putc( unsigned char c, PORT __interrupt *port );
 int port_available( PORT *port );
 int port_getc( PORT *port );
-int port_getc_sync( PORT *port );
+int port_getc_sync( PORT *port, unsigned int timeout );
 void port_set_dtr( PORT *port, unsigned char t);
 void port_put( PORT __interrupt *port, unsigned char __interrupt *buf, unsigned short len);
 

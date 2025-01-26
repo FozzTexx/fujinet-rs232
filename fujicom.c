@@ -8,16 +8,12 @@
 #include <env.h>
 #include <stdlib.h>
 
-#undef STANDARD_IRQ
-#ifdef STANDARD_IRQ
-#define IRQ_COM1       4
-#define IRQ_COM2       3
-#else /* !STANDARD_IRQ */
-#define IRQ_COM1       12
-#define IRQ_COM2       11
-#endif /* STANDARD_IRQ */
-#define BASE_COM1      0x3f8
-#define BASE_COM2      0x2f8
+#define IRQ_COM1	12
+#define IRQ_COM2	11
+#define BASE_COM1	0x3f8
+#define BASE_COM2	0x2f8
+
+#define TIMEOUT		100
 
 PORT fn_port;
 PORT *port;
@@ -76,22 +72,17 @@ char _fujicom_send_command(cmdFrame_t __interrupt *c)
 	/* Calculate checksum and place in frame */
 	c->dcksum = fujicom_cksum(cc,4);
 
-	printMsg("DTR\r\n$");
 	/* Assert DTR to indicate start of command frame */
 	port_set_dtr(port,1);
 
-	printMsg("PUT\r\n$");
 	/* Write command frame */
 	port_put(port,cc,sizeof(cmdFrame_t));
 
-	printMsg("DTR2\r\n$");
 	/* Desert DTR to indicate end of command frame */
 	port_set_dtr(port,0);
 
-	printMsg("SYNC\r\n$");
-	i=port_getc_sync(port);
+	i=port_getc_sync(port, TIMEOUT);
 
-	printMsg("SENT\r\n$");
 	return (unsigned char)i;
 }
 
@@ -99,7 +90,7 @@ char fujicom_command(cmdFrame_t *c)
 {
 	_fujicom_send_command(c);
 
-	return port_getc_sync(port);
+	return port_getc_sync(port, TIMEOUT);
 }
 
 char fujicom_command_read(cmdFrame_t __interrupt *c, unsigned char *buf, unsigned short len)
@@ -114,7 +105,7 @@ char fujicom_command_read(cmdFrame_t __interrupt *c, unsigned char *buf, unsigne
 
 	/* Get COMPLETE/ERROR */
 
-	r = port_getc_sync(port);
+	r = port_getc_sync(port, TIMEOUT);
 
 	if (r == 'C')
 	{
@@ -122,11 +113,11 @@ char fujicom_command_read(cmdFrame_t __interrupt *c, unsigned char *buf, unsigne
 
 		for (i=0;i<len;i++)
 		{
-			buf[i]=port_getc_sync(port);
+			buf[i]=port_getc_sync(port, TIMEOUT);
 		}
 
 		/* Get Checksum byte, we don't use it. */
-		port_getc_sync(port);
+		port_getc_sync(port, TIMEOUT);
 	}
 
 	/* Otherwise, we got an error, return it. */
@@ -152,13 +143,13 @@ char fujicom_command_write(cmdFrame_t *c, unsigned char *buf, unsigned short len
 	port_put(port,&ck,1);
 
 	/* Wait for ACK/NACK */
-	r = port_getc_sync(port);
+	r = port_getc_sync(port, TIMEOUT);
 	
 	if (r == 'N')
 		return r;
 
 	/* Wait for COMPLETE/ERROR */
-	return port_getc_sync(port); 
+	return port_getc_sync(port, TIMEOUT); 
 }
 
 void fujicom_done(void)

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <dos.h>
 #include <conio.h>
+#include <sys/timeb.h>
 #include "com.h"
 /*
  * This group of defines creates all the definitions used
@@ -322,22 +323,24 @@ int port_getc(PORT *port)
     return( port->in.buffer[ port->in.read_index++ ] );
 }
 
+static struct timeb pgs_t;
+
 /**
  * @brief Get next character, wait if not available.
  * @param PORT pointer to port structure.
  * @return Character, or -1 if none waiting.
  */
-int port_getc_sync(PORT *port)
+int port_getc_sync(PORT *port, unsigned int timeout)
 {
 	int i;
-	unsigned int timeout = 10000;
+	unsigned int start;
 
+	ftime(&pgs_t);
+	start = pgs_t.millitm;
 	while (!port_available(port)) {
-#if 0
-	  timeout--;
-	  if (!timeout)
+	  ftime(&pgs_t);
+	  if (pgs_t.millitm - start > timeout)
 	    return -1;
-#endif
 	}
 
 	return port_getc(port);
