@@ -38,16 +38,6 @@ uint32_t dos_stack;
 
 request __far *fpRequest = (request __far *)0;
 
-static uint16_t Open( void )
-{
-    return S_DONE;
-}
-
-static uint16_t Close( void )
-{
-    return S_DONE;
-} 
-
 static driverFunction_t dispatchTable[] =
 {
   Init_cmd,

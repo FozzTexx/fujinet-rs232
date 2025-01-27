@@ -22,43 +22,43 @@
  * they are not included in the COM.H header file where
  * they might normally be expected.
  */
-#define RBR              0    /* Receive buffer register */
-#define THR              0    /* Transmit holding reg.   */
-#define IER              1    /* Interrupt Enable reg.   */
-#define IER_RX_DATA      1    /* Enable RX interrupt bit */
-#define IER_THRE         2    /* Enable TX interrupt bit */
-#define IIR              2    /* Interrupt ID register   */
-#define IIR_MODEM_STATUS 0    /* Modem stat. interrupt ID*/
-#define IIR_TRANSMIT     2    /* Transmit interrupt ID   */
-#define IIR_RECEIVE      4    /* Receive interrupt ID    */
-#define IIR_LINE_STATUS  6    /* Line stat. interrupt ID */
-#define LCR              3    /* Line control register   */
-#define LCR_DLAB         0x80 /* Divisor access bit      */
-#define LCR_EVEN_PARITY  0x8  /* Set parity 'E' bits     */
-#define LCR_ODD_PARITY   0x18 /* Set parity 'O' bits     */
-#define LCR_NO_PARITY    0    /* Set parity 'N' bits     */
-#define LCR_1_STOP_BIT   0    /* Bits to set 1 stop bit  */
-#define LCR_2_STOP_BITS  4    /* Bits to set 2 stop bits */
-#define LCR_5_DATA_BITS  0    /* Bits to set 5 data bits */
-#define LCR_6_DATA_BITS  1    /* Bits to set 6 data bits */
-#define LCR_7_DATA_BITS  2    /* Bits to set 7 data bits */
-#define LCR_8_DATA_BITS  3    /* Bits to set 8 data bits */
-#define MCR              4    /* Modem control register  */
-#define MCR_DTR          1    /* Bit to turn on DTR      */
-#define MCR_RTS          2    /* Bit to turn on RTS      */
-#define MCR_OUT1         4    /* Bit to turn on OUT1     */
-#define MCR_OUT2         8    /* Bit to turn on OUT2     */
-#define MCR_LOOP         16   /* Bit to turn on loopback */
-#define LSR              5    /* Line Status register    */
-#define MSR              6    /* Modem Status register   */
-#define DLL              0    /* Divisor latch LSB       */
-#define DLM              1    /* Divisor latch MSB       */
+#define RBR              0      /* Receive buffer register */
+#define THR              0      /* Transmit holding reg.   */
+#define IER              1      /* Interrupt Enable reg.   */
+#define IER_RX_DATA      1      /* Enable RX interrupt bit */
+#define IER_THRE         2      /* Enable TX interrupt bit */
+#define IIR              2      /* Interrupt ID register   */
+#define IIR_MODEM_STATUS 0      /* Modem stat. interrupt ID */
+#define IIR_TRANSMIT     2      /* Transmit interrupt ID   */
+#define IIR_RECEIVE      4      /* Receive interrupt ID    */
+#define IIR_LINE_STATUS  6      /* Line stat. interrupt ID */
+#define LCR              3      /* Line control register   */
+#define LCR_DLAB         0x80   /* Divisor access bit      */
+#define LCR_EVEN_PARITY  0x8    /* Set parity 'E' bits     */
+#define LCR_ODD_PARITY   0x18   /* Set parity 'O' bits     */
+#define LCR_NO_PARITY    0      /* Set parity 'N' bits     */
+#define LCR_1_STOP_BIT   0      /* Bits to set 1 stop bit  */
+#define LCR_2_STOP_BITS  4      /* Bits to set 2 stop bits */
+#define LCR_5_DATA_BITS  0      /* Bits to set 5 data bits */
+#define LCR_6_DATA_BITS  1      /* Bits to set 6 data bits */
+#define LCR_7_DATA_BITS  2      /* Bits to set 7 data bits */
+#define LCR_8_DATA_BITS  3      /* Bits to set 8 data bits */
+#define MCR              4      /* Modem control register  */
+#define MCR_DTR          1      /* Bit to turn on DTR      */
+#define MCR_RTS          2      /* Bit to turn on RTS      */
+#define MCR_OUT1         4      /* Bit to turn on OUT1     */
+#define MCR_OUT2         8      /* Bit to turn on OUT2     */
+#define MCR_LOOP         16     /* Bit to turn on loopback */
+#define LSR              5      /* Line Status register    */
+#define MSR              6      /* Modem Status register   */
+#define DLL              0      /* Divisor latch LSB       */
+#define DLM              1      /* Divisor latch MSB       */
 /*
  * Various constants used only in this program.
  */
-#define INT_CONTROLLER   0x20  /* The address of the 8259*/
-#define EOI              0x20  /* The end of int command */
-#define BREAK_VECTOR     0x23  /* The CTRL-BREAK vector  */
+#define INT_CONTROLLER   0x20   /* The address of the 8259 */
+#define EOI              0x20   /* The end of int command */
+#define BREAK_VECTOR     0x23   /* The CTRL-BREAK vector  */
 
 /*
  * These are two static variables used in COM.C.  com is
@@ -68,7 +68,8 @@
  * It will be restored when the port is closed.
  */
 static PORT *com = NULL;
-static void ( interrupt far * old_break_handler )();
+static void (interrupt far * old_break_handler) ();
+
 
 /*
  * This routine intercepts the CTRL-BREAK vector.  This
@@ -81,6 +82,7 @@ void interrupt far break_handler()
 {
 
 }
+
 /*
  * This is the interrupt service routine for the COM port.
  * It sits in a loop reading the interrrupt ID register, then
@@ -91,19 +93,20 @@ void interrupt far break_handler()
  */
 static void interrupt far interrupt_service_routine()
 {
-  unsigned char c;
+  uint8_t c;
+
 
   enable();
-  for ( ; ; ) {
-    switch ( inportb( com->uart_base + IIR ) ) {
+  for (;;) {
+    switch (inportb(com->uart_base + IIR)) {
 /*
  * If the present interrupt is due to a modem status line
  * change, the MSR is read to clear the interrupt, but
  * nothing else is done.
  */
-      case IIR_MODEM_STATUS :
-        inportb( com->uart_base + MSR );
-        break;
+    case IIR_MODEM_STATUS:
+      inportb(com->uart_base + MSR);
+      break;
 /*
  * If the interrupt is due to the transmit holding register
  * being ready for another character, I first check to see
@@ -112,52 +115,54 @@ static void interrupt far interrupt_service_routine()
  * next character is extracted from the buffer and written
  * to the UART.
  */
-      case IIR_TRANSMIT :
-        if ( com->out.read_index == com->out.write_index )
-          outportb( com->uart_base + IER, IER_RX_DATA );
-        else {
-          c = com->out.buffer[ com->out.read_index++ ];
-          outportb( com->uart_base + THR, c );
-        }
-        break;
+    case IIR_TRANSMIT:
+      if (com->out.read_index == com->out.write_index)
+        outportb(com->uart_base + IER, IER_RX_DATA);
+      else {
+        c = com->out.buffer[com->out.read_index++];
+        outportb(com->uart_base + THR, c);
+      }
+      break;
 /*
  * When a new character comes in and generates an
  * interrupt, it is read in.  If there is room in the input
  * buffer, it is stored, otherwise it is discarded.
  */
-      case IIR_RECEIVE :
-        c = (unsigned char) inportb( com->uart_base+RBR );
-        if ((com->in.write_index+1 ) != com->in.read_index)
-            com->in.buffer[ com->in.write_index++ ] =  c ;
-        break;
+    case IIR_RECEIVE:
+      c = (uint8_t) inportb(com->uart_base + RBR);
+      if ((com->in.write_index + 1) != com->in.read_index)
+        com->in.buffer[com->in.write_index++] = c;
+      break;
 /*
  * All this code does is read the Line Status register, to
  * clear the source of the interrupt.
  */
-      case IIR_LINE_STATUS :
-        inportb( com->uart_base + LSR );
-        break;
+    case IIR_LINE_STATUS:
+      inportb(com->uart_base + LSR);
+      break;
 /*
  * If there are no valid interrupts left to service, an EOI
  * is written to the 8259 interrupt controller, and the
  * routine exits.
  */
-      default :
-        outportb( INT_CONTROLLER, EOI );
-        return;
+    default:
+      outportb(INT_CONTROLLER, EOI);
+      return;
     }
   }
 }
+
 /*
  * This routine opens an RS-232 port up.  This means it
  * allocates space for a PORT strcture, then calls port_open_static.
  */
-PORT *port_open( int address, int int_number )
+PORT *port_open(int address, int int_number)
 {
   PORT *port;
 
-  if ((port = malloc( sizeof( PORT ))) == NULL)
-    return( NULL );
+
+  if ((port = malloc(sizeof(PORT))) == NULL)
+    return (NULL);
   return port_open_static(port, address, int_number);
 }
 
@@ -170,24 +175,26 @@ PORT *port_open( int address, int int_number )
  * 8259 interrupt controller to begin accepting interrupts
  * on the IRQ line used by this COM port.
  */
-PORT *port_open_static(PORT *port, int address, int int_number )
+PORT *port_open_static(PORT * port, int address, int int_number)
 {
-  unsigned char temp;
+  uint8_t temp;
+
 
   com = port;
   port->in.write_index = port->in.read_index = 0;
   port->out.write_index = port->out.read_index = 0;
   port->uart_base = address;
-  port->irq_mask = (char) 1 << (int_number % 8 );
+  port->irq_mask = (char) 1 << (int_number % 8);
   port->interrupt_number = int_number;
-  port->old_vector = getvect( int_number );
-  setvect( int_number, interrupt_service_routine );
-  old_break_handler = getvect( BREAK_VECTOR );
-  setvect( BREAK_VECTOR, break_handler );
-  temp = (char) inportb( INT_CONTROLLER + 1 );
-  outportb( INT_CONTROLLER + 1, ~port->irq_mask & temp );
-  return( port );
+  port->old_vector = getvect(int_number);
+  setvect(int_number, interrupt_service_routine);
+  old_break_handler = getvect(BREAK_VECTOR);
+  setvect(BREAK_VECTOR, break_handler);
+  temp = (char) inportb(INT_CONTROLLER + 1);
+  outportb(INT_CONTROLLER + 1, ~port->irq_mask & temp);
+  return (port);
 }
+
 /*
  * This routine establishes the operating parameters for a
  * port after it has been opened.  This means it sets the
@@ -196,76 +203,76 @@ PORT *port_open_static(PORT *port, int address, int int_number )
  * starts changing registers, and are then reenabled after
  * the changes are complete.
  */
-void port_set( PORT *port,
-               long speed,
-               char parity,
-               int data,
-               int stopbits )
+void port_set(PORT * port, long speed, char parity, int data, int stopbits)
 {
-  unsigned char lcr_out;
-  unsigned char mcr_out;
-  unsigned char low_divisor;
-  unsigned char high_divisor;
+  uint8_t lcr_out;
+  uint8_t mcr_out;
+  uint8_t low_divisor;
+  uint8_t high_divisor;
+
+
 /*
  * First disable all interrupts from the port.  I also read
  * RBR just in case their is a char sitting there ready to
  * generate an interupt.
  */
-  outportb( port->uart_base + IER, 0 );
-  inportb( port->uart_base );
+  outportb(port->uart_base + IER, 0);
+  inportb(port->uart_base);
 /*
  * Writing the baud rate means first enabling the divisor
  * latch registers, then writing the 16 bit divisor int
  * two steps, then disabling the divisor latch so the other
  * registers can be accessed normally.
  */
-  low_divisor = (char) (115200L / speed ) & 0xff;
-  high_divisor = (char) ((115200L /  speed ) >> 8);
-  outportb( port->uart_base + LCR, LCR_DLAB );
-  outportb( port->uart_base + DLL, low_divisor );
-  outportb( port->uart_base + DLM, high_divisor );
-  outportb( port->uart_base + LCR, 0 );
+  low_divisor = (char) (115200L / speed) & 0xff;
+  high_divisor = (char) ((115200L / speed) >> 8);
+  outportb(port->uart_base + LCR, LCR_DLAB);
+  outportb(port->uart_base + DLL, low_divisor);
+  outportb(port->uart_base + DLM, high_divisor);
+  outportb(port->uart_base + LCR, 0);
 /*
  * Setting up the line control register establishes the
  * parity, number of bits, and number of stop bits.
  */
-  if ( parity== 'E' )
+  if (parity == 'E')
     lcr_out = LCR_EVEN_PARITY;
-  else if ( parity == 'O' )
+  else if (parity == 'O')
     lcr_out = LCR_ODD_PARITY;
   else
     lcr_out = LCR_NO_PARITY;
 
-  if ( stopbits == 2 )
+  if (stopbits == 2)
     lcr_out |= LCR_2_STOP_BITS;
 
-  if ( data == 6 )
+  if (data == 6)
     lcr_out |= LCR_6_DATA_BITS;
-  else if ( data == 7 )
+  else if (data == 7)
     lcr_out |= LCR_7_DATA_BITS;
-  else if ( data == 8 )
+  else if (data == 8)
     lcr_out |= LCR_8_DATA_BITS;
 
-  outportb( port->uart_base + LCR, lcr_out );
+  outportb(port->uart_base + LCR, lcr_out);
 /*
  * I turn on RTS and DTR, as well as OUT2.  OUT2 is needed
  * to allow interrupts on PC compatible cards.
  */
   mcr_out = MCR_RTS | MCR_DTR | MCR_OUT2;
-  outportb( port->uart_base + MCR, mcr_out );
+  outportb(port->uart_base + MCR, mcr_out);
 /*
  * Finally, restart receiver interrupts, and exit.
  */
-  outportb( port->uart_base + IER, IER_RX_DATA );
+  outportb(port->uart_base + IER, IER_RX_DATA);
 }
+
 /*
  * Calls port_close_static then frees the passed struct
  */
-void port_close( PORT *port )
+void port_close(PORT * port)
 {
   port_close_static(port);
-  free( port );
+  free(port);
 }
+
 /*
  * In order to close the port, I first disable interrupts
  * at the UART, then disable interrupts from the UART's IRQ
@@ -274,17 +281,19 @@ void port_close( PORT *port )
  * handler is restored, and the old break handler
  * is restored.
  */
-void port_close_static( PORT *port )
+void port_close_static(PORT * port)
 {
-  unsigned char temp;
+  uint8_t temp;
 
-  outportb( port->uart_base + IER, 0 );
-  temp = (unsigned char) inportb( INT_CONTROLLER + 1 );
-  outportb( INT_CONTROLLER + 1, port->irq_mask | temp );
-  setvect( port->interrupt_number, port->old_vector );
-  setvect( BREAK_VECTOR, old_break_handler );
-  outportb( port->uart_base + MCR, 0 );
+
+  outportb(port->uart_base + IER, 0);
+  temp = (uint8_t) inportb(INT_CONTROLLER + 1);
+  outportb(INT_CONTROLLER + 1, port->irq_mask | temp);
+  setvect(port->interrupt_number, port->old_vector);
+  setvect(BREAK_VECTOR, old_break_handler);
+  outportb(port->uart_base + MCR, 0);
 }
+
 /*
  * This routine is used to send a single character out to
  * the UART.  If there is room in the output buffer, the
@@ -293,20 +302,20 @@ void port_close_static( PORT *port )
  * enabled for this UART.  If they aren't, they are turned
  * on so the ISR will see this new character.
  */
-int port_putc( unsigned char c, PORT *port )
+int port_putc(uint8_t c, PORT * port)
 {
-  if (( port->out.write_index+1 ) == port->out.read_index)
-    return( -1 );
-  port->out.buffer[ port->out.write_index ] = c;
+  if ((port->out.write_index + 1) == port->out.read_index)
+    return (-1);
+  port->out.buffer[port->out.write_index] = c;
   port->out.write_index += 1;
-  if (( inportb( port->uart_base + IER ) & IER_THRE) == 0 )
-    outportb( port->uart_base+IER,IER_THRE | IER_RX_DATA);
-  return( c );
+  if ((inportb(port->uart_base + IER) & IER_THRE) == 0)
+    outportb(port->uart_base + IER, IER_THRE | IER_RX_DATA);
+  return (c);
 }
 
-int port_available(PORT *port)
+int port_available(PORT * port)
 {
-	return port->in.write_index - port->in.read_index;
+  return port->in.write_index - port->in.read_index;
 }
 
 /*
@@ -315,35 +324,37 @@ int port_available(PORT *port)
  * If there is, it is pulled out and returned to the
  * caller.
  */
-int port_getc(PORT *port)
+int port_getc(PORT * port)
 {
-  if ( port->in.write_index == port->in.read_index )
-    return( -1 );
+  if (port->in.write_index == port->in.read_index)
+    return (-1);
   else
-    return( port->in.buffer[ port->in.read_index++ ] );
+    return (port->in.buffer[port->in.read_index++]);
 }
 
 static struct timeb pgs_t;
+
 
 /**
  * @brief Get next character, wait if not available.
  * @param PORT pointer to port structure.
  * @return Character, or -1 if none waiting.
  */
-int port_getc_sync(PORT *port, unsigned int timeout)
+int port_getc_sync(PORT * port, uint16_t timeout)
 {
-	int i;
-	unsigned int start;
+  int i;
+  uint16_t start;
 
-	ftime(&pgs_t);
-	start = pgs_t.millitm;
-	while (!port_available(port)) {
-	  ftime(&pgs_t);
-	  if (pgs_t.millitm - start > timeout)
-	    return -1;
-	}
 
-	return port_getc(port);
+  ftime(&pgs_t);
+  start = pgs_t.millitm;
+  while (!port_available(port)) {
+    ftime(&pgs_t);
+    if (pgs_t.millitm - start > timeout)
+      return -1;
+  }
+
+  return port_getc(port);
 }
 
 /**
@@ -351,14 +362,12 @@ int port_getc_sync(PORT *port, unsigned int timeout)
  * @param port Pointer to initialized port.
  * @param t 0 = off, 1 = on
  */
-void port_set_dtr(PORT *port, unsigned char t)
+void port_set_dtr(PORT * port, uint8_t t)
 {
-	if (t)
-		outportb(port->uart_base+MCR, 
-			 inportb(port->uart_base+MCR) | 0x01);
-	else
-		outportb(port->uart_base+MCR,
-			 inportb(port->uart_base+MCR) & 0xFE);
+  if (t)
+    outportb(port->uart_base + MCR, inportb(port->uart_base + MCR) | 0x01);
+  else
+    outportb(port->uart_base + MCR, inportb(port->uart_base + MCR) & 0xFE);
 }
 
 /**
@@ -367,18 +376,17 @@ void port_set_dtr(PORT *port, unsigned char t)
  * @param buf Pointer to buffer
  * @param len number of bytes to send, must be len or less.
  */
-void port_put(PORT *port, unsigned char *buf, unsigned short len)
+void port_put(PORT * port, uint8_t * buf, uint16_t len)
 {
-	int i=0;
+  int i = 0;
 
-	while (len)
-	{
-		i = port_putc(*buf,port);
-		if (i != -1)
-		{
-			len--;
-			buf++;
-		}
-		delay(1);
-	}
+
+  while (len) {
+    i = port_putc(*buf, port);
+    if (i != -1) {
+      len--;
+      buf++;
+    }
+    delay(1);
+  }
 }
