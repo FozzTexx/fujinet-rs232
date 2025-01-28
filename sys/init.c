@@ -1,3 +1,4 @@
+#undef WITHOUT_GLOBAL
 #undef LOOPBACK_TEST
 
 #include "fujicom.h"
@@ -19,8 +20,11 @@ struct _tm {
   char tm_sec;
 };
 
-union REGS r;
+#ifndef WITHOUT_GLOBAL
 cmdFrame_t c;
+#endif /* WITHOUT_GLOBAL */
+
+union REGS r;
 
 static char hellomsg[] = "\r\FujiNet in Open Watcom C\r\n$";
 
@@ -102,6 +106,9 @@ uint16_t Init_cmd(void)
   {
     char reply = 0;
     struct _tm t;
+#ifdef WITHOUT_GLOBAL
+    cmdFrame_t c;
+#endif /* WITHOUT_GLOBAL */
 
 
     c.ddev = 0x45;
