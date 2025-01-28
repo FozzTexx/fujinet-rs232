@@ -21,10 +21,10 @@ struct _tm {
 };
 
 #ifndef WITHOUT_GLOBAL
-cmdFrame_t c;
+cmdFrame_t cmd;
 #endif /* WITHOUT_GLOBAL */
 
-union REGS r;
+union REGS iregs;
 
 static char hellomsg[] = "\r\FujiNet in Open Watcom C\r\n$";
 
@@ -105,17 +105,17 @@ uint16_t Init_cmd(void)
 #else /* !LOOPBACK_TEST */
   {
     char reply = 0;
-    struct _tm t;
+    struct _tm cur_time;
 #ifdef WITHOUT_GLOBAL
-    cmdFrame_t c;
+    cmdFrame_t cmd;
 #endif /* WITHOUT_GLOBAL */
 
 
-    c.ddev = 0x45;
-    c.dcomnd = 0x9A;
+    cmd.ddev = 0x45;
+    cmd.dcomnd = 0x9A;
 
     fujicom_init();
-    reply = fujicom_command_read(&c, (uint8_t *) &t, sizeof(t));
+    reply = fujicom_command_read(&cmd, (uint8_t *) &cur_time, sizeof(cur_time));
 
     if (reply != 'C') {
       printDTerm("Could not read time from FujiNet.\r\nAborted.\r\n$");
@@ -123,32 +123,32 @@ uint16_t Init_cmd(void)
       return 1;
     }
 
-    r.h.ah = 0x2B;
-    r.x.cx = t.tm_year + 2000;
-    r.h.dh = t.tm_month;
-    r.h.dl = t.tm_mday;
+    iregs.h.ah = 0x2B;
+    iregs.x.cx = cur_time.tm_year + 2000;
+    iregs.h.dh = cur_time.tm_month;
+    iregs.h.dl = cur_time.tm_mday;
 
-    intdos(&r, NULL);
+    intdos(&iregs, NULL);
 
-    r.h.ah = 0x2D;
-    r.h.ch = t.tm_hour;
-    r.h.cl = t.tm_min;
-    r.h.dh = t.tm_sec;
-    r.h.dl = 0;
+    iregs.h.ah = 0x2D;
+    iregs.h.ch = cur_time.tm_hour;
+    iregs.h.cl = cur_time.tm_min;
+    iregs.h.dh = cur_time.tm_sec;
+    iregs.h.dl = 0;
 
-    intdos(&r, NULL);
+    intdos(&iregs, NULL);
 
     printDTerm("MS-DOS Time now set from FujiNet\r\n$");
     strcpy(hellomsg, "DATE: 00/00/00\r\n$");
-    byte_to_decimal(&hellomsg[6], t.tm_month);
-    byte_to_decimal(&hellomsg[9], t.tm_mday);
-    byte_to_decimal(&hellomsg[12], t.tm_year);
+    byte_to_decimal(&hellomsg[6], cur_time.tm_month);
+    byte_to_decimal(&hellomsg[9], cur_time.tm_mday);
+    byte_to_decimal(&hellomsg[12], cur_time.tm_year);
     printDTerm(hellomsg);
 
     strcpy(hellomsg, "TIME: 00:00:00\r\n$");
-    byte_to_decimal(&hellomsg[6], t.tm_hour);
-    byte_to_decimal(&hellomsg[9], t.tm_min);
-    byte_to_decimal(&hellomsg[12], t.tm_sec);
+    byte_to_decimal(&hellomsg[6], cur_time.tm_hour);
+    byte_to_decimal(&hellomsg[9], cur_time.tm_min);
+    byte_to_decimal(&hellomsg[12], cur_time.tm_sec);
     printDTerm(hellomsg);
   }
 #endif /* LOOPBACK_TEST */
