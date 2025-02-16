@@ -2,13 +2,14 @@
  * #FUJINET Low Level Routines
  */
 
-#define DEBUG
+#undef DEBUG
+#define INIT_INFO
 
 #include "fujicom.h"
 #include "com.h"
 #include <dos.h>
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(INIT_INFO)
 #include "../sys/print.h" // debug
 #endif
 
@@ -39,7 +40,7 @@ void fujicom_init(void)
   if (getenv("FUJI_BPS"))
     bps = atol(getenv("FUJI_BPS"));
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(INIT_INFO)
   consolef("Port: %i  BPS: %li\n", comp, (int32_t) bps);
 #endif
 
@@ -249,8 +250,10 @@ int fujicom_command_write(cmdFrame_t far *cmd, void far *ptr, uint16_t len)
   /* Wait for COMPLETE/ERROR */
   reply = port_getc_nobuf(port, TIMEOUT_SLOW);
   if (reply != 'C') {
+#if 0
 #ifdef DEBUG
     consolef("FN write complete fail: 0x%04x\n", reply);
+#endif
 #endif
   }
 
