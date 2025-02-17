@@ -273,21 +273,25 @@ void fujicom_done(void)
   return;
 }
 
+#if 0
 int fujiF5(uint8_t direction, uint8_t device, uint8_t command,
 	   uint16_t aux12, uint16_t aux34, void far *buffer, uint16_t length)
 {
+  int result;
   f5regs.x.dx = direction;
   f5regs.h.al = device;
   f5regs.h.ah = command;
   f5regs.x.cx = aux12;
   f5regs.x.si = aux34;
 
+  consolef("SEND F5h %02x %02x %02x %02x %02x %02x %02x\n", direction,
+	   f5regs.h.al, f5regs.h.ah, f5regs.h.cl, f5regs.h.ch,
+	   aux34 & 0xff, aux34 >> 8);
   f5status.es  = FP_SEG(buffer);
   f5regs.x.bx = FP_OFF(buffer);
   f5regs.x.di = length;
 
   int86x(FUJINET_INT, &f5regs, &f5regs, &f5status);
-
   return f5regs.x.ax;
 }
-
+#endif

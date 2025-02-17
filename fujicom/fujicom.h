@@ -171,6 +171,13 @@ void fujicom_done(void);
 
 extern int fujiF5(uint8_t direction, uint8_t device, uint8_t command,
                   uint16_t aux12, uint16_t aux34, void far *buffer, uint16_t length);
+#if 1
+#pragma aux fujiF5 = \
+  "int 0xf5" \
+  parm [dl] [al] [ah] [cx] [si] [es bx] [di] \
+  modify [ax]
+#endif
+
 #define fujiF5_none(d, c, a12, a34, b, l) fujiF5(FUJIINT_NONE, d, c, a12, a34, b, l)
 #define fujiF5_read(d, c, a12, a34, b, l) fujiF5(FUJIINT_READ, d, c, a12, a34, b, l)
 #define fujiF5_write(d, c, a12, a34, b, l) fujiF5(FUJIINT_WRITE, d, c, a12, a34, b, l)
