@@ -5,6 +5,8 @@
 #ifndef _FUJICOM_H
 #define _FUJICOM_H
 
+#undef FUJIF5_AS_FUNCTION
+
 #include <stdint.h>
 
 #define FUJINET_INT     0xF5
@@ -169,13 +171,17 @@ extern int fujicom_command_write(cmdFrame_t far *c, void far *ptr, uint16_t len)
  */
 void fujicom_done(void);
 
+#ifndef FUJIF5_AS_FUNCTION
+extern int fujiF5w(uint16_t direction, uint16_t devcom,
+                  uint16_t aux12, uint16_t aux34, void far *buffer, uint16_t length);
+#pragma aux fujiF5w = \
+  "int 0xf5" \
+  parm [dx] [ax] [cx] [si] [es bx] [di] \
+  modify [ax]
+#define fujiF5(dx, d, c, a12, a34, b, l) fujiF5w(dx, c << 8 | d, a12, a34, b, l)
+#else
 extern int fujiF5(uint8_t direction, uint8_t device, uint8_t command,
                   uint16_t aux12, uint16_t aux34, void far *buffer, uint16_t length);
-#if 1
-#pragma aux fujiF5 = \
-  "int 0xf5" \
-  parm [dl] [al] [ah] [cx] [si] [es bx] [di] \
-  modify [ax]
 #endif
 
 #define fujiF5_none(d, c, a12, a34, b, l) fujiF5(FUJIINT_NONE, d, c, a12, a34, b, l)
