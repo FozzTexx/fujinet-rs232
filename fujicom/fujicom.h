@@ -48,6 +48,12 @@ typedef union {         /* Command Frame */
 } cmdFrame_t;
 
 typedef struct {
+  uint16_t bw;
+  uint8_t connected; /* meaning of this field is inconsistent */
+  uint8_t error;
+} fujiStatus;
+
+typedef struct {
   unsigned char hostSlot;
   unsigned char mode;
   char file[36];
@@ -78,10 +84,13 @@ enum {
   CMD_READ                      = 'R',
   CMD_WRITE                     = 'W',
   CMD_STATUS                    = 'S',
+  CMD_PARSE                     = 'P',
+  CMD_QUERY                     = 'Q',
   CMD_APETIME_GETTIME           = 0x93,
   CMD_APETIME_SETTZ             = 0x99,
   CMD_APETIME_GETTZTIME         = 0x9A,
   CMD_READ_DEVICE_SLOTS         = 0xF2,
+  CMD_JSON                      = 0xFC,
   CMD_USERNAME                  = 0xFD,
   CMD_PASSWORD                  = 0xFE,
 };
@@ -121,8 +130,8 @@ enum {
   NETWORK_ERROR_COULD_NOT_PARSE_JSON            = 213,
   NETWORK_ERROR_CLIENT_GENERAL                  = 214,
   NETWORK_ERROR_SERVER_GENERAL                  = 215,
-  NETWORK_ERROR_NO_DEVICE_AVAILABLE		= 216,
-  NETWORK_ERROR_NOT_A_DIRECTORY			= 217,
+  NETWORK_ERROR_NO_DEVICE_AVAILABLE             = 216,
+  NETWORK_ERROR_NOT_A_DIRECTORY                 = 217,
   NETWORK_ERROR_COULD_NOT_ALLOCATE_BUFFERS      = 255,
 };
 
@@ -180,7 +189,8 @@ extern int fujiF5w(uint16_t direction, uint16_t devcom,
   "int 0xf5" \
   parm [dx] [ax] [cx] [si] [es bx] [di] \
   modify [ax]
-#define fujiF5(dx, d, c, a12, a34, b, l) fujiF5w(dx, c << 8 | d, a12, a34, b, l)
+#define fujiF5(dx, dev, cmd, a12, a34, buf, len) \
+  fujiF5w(dx, cmd << 8 | dev, a12, a34, buf, len)
 #else
 extern int fujiF5(uint8_t direction, uint8_t device, uint8_t command,
                   uint16_t aux12, uint16_t aux34, void far *buffer, uint16_t length);
