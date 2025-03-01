@@ -11,9 +11,11 @@
 #include "grlib.h"
 #include "map.h"
 #include "sat.h"
+#include "fetch.h"
+#include "osd.h"
 
 char lat[16], lon[16];
-unsigned long ts;
+static unsigned long ts;
 int timeout=60000;
 
 void main()
@@ -27,7 +29,7 @@ void main()
 	{
 		map();
 		fetch(&lat,&lon,&ts);
-		osd(&lat,&lon,&ts);
+		osd(&lat,&lon,ts);
 		sat((char *)&lat,(char *)&lon);
 		while (timeout--)
 		{

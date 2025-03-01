@@ -4,9 +4,11 @@
 
 #include <dos.h>
 
+/* Need to be here otherwise they become __far */
+union REGS r1,r2;
+
 int gr_mode(int mode)
 {
-	union REGS r1,r2;
 
 	if (mode<0)
 	{
@@ -25,54 +27,55 @@ int gr_mode(int mode)
 
 int gr_color(char p, char c)
 {
-	union REGS r;
 
-	r.h.ah = 0x0b;
-	r.h.bh = 0x01;
-	r.h.bl = p;
+	r1.h.ah = 0x0b;
+	r1.h.bh = 0x01;
+	r1.h.bl = p;
 
 	/* int86(0x10,&r,0); */
 
-	r.h.ah = 0x0b;
-	r.h.bh = 0x00;
-	r.h.bl = c;
+	r1.h.ah = 0x0b;
+	r1.h.bh = 0x00;
+	r1.h.bl = c;
 
-	int86(0x10,&r,0);
+	int86(0x10,&r1,0);
+	return r1.x.ax;
 }
 
 int gr_pset(int x, int y, char c)
 {
-	union REGS r;
 
-	r.h.ah = 0x0c;
-	r.h.al = c;
-	r.h.bh = 0;
-	r.x.cx = x;
-	r.x.dx = y;
+	r1.h.ah = 0x0c;
+	r1.h.al = c;
+	r1.h.bh = 0;
+	r1.x.cx = x;
+	r1.x.dx = y;
 
-	int86(0x10,&r,0);
+	int86(0x10,&r1,0);
+	return r1.x.ax;
 }
 
 int gr_text(int x, int y, char *s)
 {
-	union REGS r;
 
 	/* Position cursor */
-	r.h.ah = 0x02;
-	r.h.bh = 0;
-	r.h.dh = y;
-	r.h.dl = x;
-	int86(0x10,&r,0);	
+	r1.h.ah = 0x02;
+	r1.h.bh = 0;
+	r1.h.dh = y;
+	r1.h.dl = x;
+	int86(0x10,&r1,0);
 
 	/* Output characters */
 	while (*s)
 	{
-		r.h.ah = 0x0e;
-		r.h.al = *s;
-		r.h.bl = 0x0f;
-	
-		int86(0x10,&r,0);
+		r1.h.ah = 0x0e;
+		r1.h.al = *s;
+		r1.h.bl = 0x0f;
+
+		int86(0x10,&r1,0);
 
 		s++;
 	}
+
+	return r1.x.ax;
 }

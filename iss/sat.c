@@ -3,6 +3,8 @@
  */
 
 #include "latlon.h"
+#include "grlib.h"
+#include <stdlib.h>
 
 #define CENTER_X 4
 #define CENTER_Y 4
@@ -30,14 +32,14 @@ void sat(char *lat_s, char *lon_s)
 	int   y = latitude[lat+90]-CENTER_Y;
 	int   i = 0;
 	int   j = 0;
-	char b;
+	unsigned char b;
 
 	for (i=0;i<8;i++)
 	{
 		b=satellite[i];
 		for (j=0;j<8;j++)
 		{
-			if (b<0)
+			if (b & 0x80)
 				gr_pset(x+j,y+i,3);
 			else
 				gr_pset(x+j,y+i,0);

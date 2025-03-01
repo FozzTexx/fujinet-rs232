@@ -7,11 +7,12 @@
 #include "grlib.h"
 #include "ftime.h"
 
+/* Need to be here otherwise becomes __far */
+static Timestamp ts;
+char tmp[41];
+
 void osd(char *lat, char *lon, unsigned long t)
 {
-	char tmp[41];
-	Timestamp ts;
-
 	timestamp(t,&ts);
 
 	gr_text(10,21,"CURRENT ISS POSITION");
