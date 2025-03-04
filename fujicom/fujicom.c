@@ -20,7 +20,7 @@
 #define TIMEOUT_SLOW	15 * 1000
 #define MAX_RETRIES	5
 #ifndef SERIAL_BPS
-#define SERIAL_BPS      9600
+#define SERIAL_BPS      115200
 #endif /* SERIAL_BPS */
 
 PORT fn_port;
@@ -111,10 +111,8 @@ int fujicom_command(cmdFrame_t far *cmd)
   _fujicom_send_command(cmd);
   reply = port_getc_nobuf(port, TIMEOUT);
   //port_enable_interrupts(port);
-#if 0
 #ifdef DEBUG
   consolef("FN command reply: 0x%04x\n", reply);
-#endif
 #endif
 
   return reply;
@@ -189,10 +187,8 @@ int fujicom_command_read(cmdFrame_t far *cmd, void far *ptr, uint16_t len)
 
  done:
   //port_enable_interrupts(port);
-#if 0
 #ifdef DEBUG
   consolef("FN command read reply: 0x%04x\n", reply);
-#endif
 #endif
   return reply;
 }
@@ -250,19 +246,15 @@ int fujicom_command_write(cmdFrame_t far *cmd, void far *ptr, uint16_t len)
   /* Wait for COMPLETE/ERROR */
   reply = port_getc_nobuf(port, TIMEOUT_SLOW);
   if (reply != 'C') {
-#if 0
 #ifdef DEBUG
     consolef("FN write complete fail: 0x%04x\n", reply);
-#endif
 #endif
   }
 
  done:
   //port_enable_interrupts(port)
-#if 0
 #ifdef DEBUG
   consolef("FN command write reply: 0x%04x\n", reply);
-#endif
 #endif
   return reply;
 }
