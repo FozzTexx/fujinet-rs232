@@ -5,17 +5,16 @@
  * @license GPL v. 3, see LICENSE for details.
  */
 
-#include "fujicom.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dos.h>
+#include "fujicom.h"
 
 /* buffers for commands like OPEN are expected to be 256 bytes */
 unsigned char url[256];
 
-/* large byte buffer used for copy. */
-unsigned char buf[8192];
+/* 512 byte buffer used for copy. */
+unsigned char buf[512];
 
 /* Status structure */
 struct _status
@@ -35,8 +34,11 @@ int nget(char *src, char *dst)
 {
 	FILE *fp = fopen(dst,"wb");
 	int err  = 0;
+	cmdFrame_t c;
 	unsigned long total=0;
 	char *username=NULL, *password=NULL;
+
+	fujicom_init();
 
 	if ((src[0] != 'N') && (src[1] != ':'))
 	{
@@ -55,67 +57,75 @@ int nget(char *src, char *dst)
 
 	if (username)
 	{
+		/* Perform username command */
+		c.device = 0x71;
+		c.comnd = 0xFD;
+		c.aux1 = c.aux2 = 0x00;
 		memset(url,0,sizeof(url));
 		strcpy(url,username);
-
-		/* Perform username command */
-		fujiF5_write(DEVICEID_FN_NETWORK, CMD_USERNAME, 0, 0, &url, sizeof(url));
+		fujicom_command_write(&c,url,sizeof(url));
 	}
 
 	if (password)
 	{
+		/* Perform password command */
+		c.device = 0x71;
+		c.comnd = 0xFE;
+		c.aux1 = c.aux2 = 0x00;
 		memset(url,0,sizeof(url));
 		strcpy(url,password);
-
-		/* Perform password command */
-		fujiF5_write(DEVICEID_FN_NETWORK, CMD_PASSWORD, 0, 0, &url, sizeof(url));
+		fujicom_command_write(&c,url,sizeof(url));
 	}
 
 	memset(url,0,sizeof(url));
-	strcpy(url,src);
 
 	/* Perform OPEN command */
-	// FIXME - define constants:
-	//r.h.dl   = 0x04; /* READ ONLY */
-	//r.h.dh   = 0x00; /* NO TRANSLATION */
-	fujiF5_write(DEVICEID_FN_NETWORK, CMD_OPEN, 0x0004, 0, &url, sizeof(url));
-
- 	delay(10);
+	c.device   = 0x71;
+	c.comnd = 'O';
+	c.aux1  = 0x04; /* READ ONLY */
+	c.aux2  = 0x00; /* NO TRANSLATION */
+	strcpy(url,src);
+	fujicom_command_write(&c,url,sizeof(url));
 
 	/* Perform initial status command */
-	fujiF5_read(DEVICEID_FN_NETWORK, CMD_STATUS, 0, 0, &status, sizeof(status));
+	c.device   = 0x71;
+	c.comnd = 'S';
+	c.aux1  = 0x00;
+	c.aux2  = 0x00;
+	fujicom_command_read(&c,(unsigned char *)&status,sizeof(status));
 
-	if (status.error > 1 && !status.bw)
+        if (status.error == NETWORK_ERROR_END_OF_FILE)
+          status.error = NETWORK_SUCCESS;
+
+	if (status.error > 1)
 	{
 		printf("\nOPEN ERROR: %u\n",status.error);
 		return status.error;
 	}
 
-	/* if (!status.connected)
+#if 0
+	if (!status.connected)
 	{
 		printf("\nOPEN ERROR: Host immediately disconnected.\n");
 		return 0xFF;
-	} */
+	}
+#endif
 
-	while (1)
+	while (status.error != 136)
 	{
-		int bw = (status.bw > sizeof(buf) ? sizeof(buf) : status.bw);
+		int bw = (status.bw > 512 ? 512 : status.bw);
 		char reply = 0;
 
-		if (!bw && status.error == 136)
-			break;
-		else if (!bw)
-			continue;
-
-		delay(1);
-
 		/* Do read */
-		reply = fujiF5_read(DEVICEID_FN_NETWORK, CMD_READ, bw, 0, &buf, bw);
+		c.comnd = 'R';
+		c.aux1  = bw & 0xFF;
+		c.aux2  = bw >> 8;
+		reply = fujicom_command_read(&c,buf,bw);
 
 		if (reply != 'C')
 		{
-		 	printf("\nREAD ERROR AT %lu bytes. Reply was %c\n",total,reply);
-		 	return 144;
+			printf("\nREAD ERROR AT %lu bytes.\n",total);
+			return 144;
 		}
 
 		/* Do write */
@@ -124,19 +134,26 @@ int nget(char *src, char *dst)
 		total += bw;
 
 		printf("%10lu bytes transferred.\r",total);
-		fflush(stdout);
-
-		delay(1);
 
 		/* Do next status */
-		fujiF5_read(DEVICEID_FN_NETWORK, CMD_STATUS, 0, 0, &status, sizeof(status));
+		c.device = 0x71;
+		c.comnd = 'S';
+		c.aux1 = 0x00;
+		c.aux2 = 0x00;
+		fujicom_command_read(&c,
+					(unsigned char *)&status, 
+					sizeof(status));
 	}
 
 	/* Perform CLOSE command */
-	fujiF5_none(DEVICEID_FN_NETWORK, CMD_CLOSE, 0, 0, NULL, 0);
+	c.device   = 0x71;
+	c.comnd = 'C';
+	fujicom_command(&c);
 
 	fclose(fp);
 	
+	fujicom_done();
+
 	return err;
 }
 
